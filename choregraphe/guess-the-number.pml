@@ -6,13 +6,8 @@
     </BehaviorDescriptions>
     <Dialogs />
     <Resources>
-        <File name="run" src="run.py" />
-        <File name="itk" src="src/itk.py" />
         <File name="index" src="html/index.html" />
-        <File name="echo" src="html/echo.php" />
     </Resources>
     <Topics />
-    <IgnoredPaths>
-        <Path src=".metadata" />
-    </IgnoredPaths>
+    <IgnoredPaths />
 </Package>
