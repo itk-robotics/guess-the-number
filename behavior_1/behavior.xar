@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ChoregrapheProject xmlns="http://www.aldebaran-robotics.com/schema/choregraphe/project.xsd" xar_version="3">
+    <Box name="root" id="-1" localization="8" tooltip="Root box of Choregraphe&apos;s behavior. Highest level possible." x="0" y="0">
+        <bitmap>media/images/box/root.png</bitmap>
+        <script language="4">
+            <content>
+                <![CDATA[]]>
+</content>
+        </script>
+        <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+        <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+        <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+        <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+        <Timeline enable="0">
+            <BehaviorLayer name="behavior_layer1">
+                <BehaviorKeyframe name="keyframe1" index="1">
+                    <Diagram>
+                        <Box name="Python Script (1)" id="2" localization="8" tooltip="This box contains a basic python script and can be used to create any python script box you would like.&#x0A;&#x0A;To edit its script, double-click on it." x="299" y="154">
+                            <bitmap>media/images/box/box-python-script.png</bitmap>
+                            <script language="4">
+                                <content>
+                                    <![CDATA[import sys
+import random
+import time
+
+class MyClass(GeneratedClass):
+    def __init__(self):
+        GeneratedClass.__init__(self)
+        self.memory = ALProxy("ALMemory")
+        self.aniTts = ALProxy('ALAnimatedSpeech')
+        self.asr = ALProxy("ALSpeechRecognition")
+        self.tablet = ALProxy("ALTabletService")
+
+    def onLoad(self):
+        pass
+
+    def onUnload(self):
+        pass
+
+    def _getTabletService(self):
+        tabletService = None
+        try:
+            tabletService = self.session().service("ALTabletService")
+        except Exception as e:
+            self.logger.error(e)
+        return tabletService
+
+    def onInput_onStart(self):
+        min = 1
+        max = 10
+
+        self.showText('Guess the number')
+
+        try:
+            self.asr.setLanguage('English')
+            self.asr.setVocabulary(map(lambda i: str(i), range(min, max + 1)), False)
+            self.asr.unsubscribe('guees_a_number')
+        except:
+            pass
+
+        try:
+            self.asr.subscribe('guees_a_number')
+            text = "Ready? \pau=1000\ I'm thinking of a number between %d and %d. \pau=1000\ Make a guess." % (min, max)
+            self.aniTts.say(text)
+
+            self.goal = random.randint(min, max)
+
+            self.logger.info('goal: %d' % self.goal)
+
+            self.numberOfGuesses = 0
+            self.guess = -1
+            self.memory.subscribeToEvent('WordRecognized', self.getName(), 'onWordRecognized')
+
+        except Exception as e:
+            self.logger.warning(str(e))
+        else:
+            self.logger.info('done')
+
+    def onInput_onStop(self):
+        tabletService = self._getTabletService()
+        if tabletService:
+            tabletService.hideWebview()
+        self.onUnload()
+        self.onStopped()
+        pass
+
+    def showText(self, text):
+        tabletService = self._getTabletService()
+        if tabletService:
+            try:
+                tabletService.showWebview("http://mikkelricky.dk/norma/echo.php?%s" % str(text))
+                # tabletService.loadApplication(self.packageUid())
+                #     script = "var value = prompt('guess', " + str(guess) + "); setValue(value);"
+                #     self.logger.info(script)
+                #     tabletService.executeJS(script)
+                #     self.logger.info(script)
+            except Exception as e:
+                self.logger.info(str(e))
+
+    def onWordRecognized(self, key, value, message):
+        self.logger.info('onWordRecognized ' + str([key, value, message]))
+        if (len(value) > 1 and value[1] >= 0.4):
+            try:
+                guess = int(value[0])
+                self.numberOfGuesses += 1
+                self.logger.info('guess: %d; goal: %d' % (guess, self.goal))
+                self.showText(guess)
+                if guess == self.goal:
+                    self.memory.unsubscribeToEvent('WordRecognized', self.getName())
+                    self.asr.unsubscribe('guees_a_number')
+                    self.showText('You gueesed the number!')
+                    text = '\style=joyful\ Congratulations! \style=neutral\ You guessed that the number is %d! \pau=1000\ Thanks for playing this game.' % self.goal
+                    self.aniTts.say(text)
+                    self.onInput_onStop()
+                elif guess > self.goal:
+                    text = 'Try a number lower than %d' % guess
+                    self.aniTts.say(text)
+                elif guess < self.goal:
+                    text = 'Try a number higher than %d' % guess
+                    self.aniTts.say(text)
+            except Exception as e:
+                self.logger.info(str(e))
+                self.aniTts.say("Hmm ... I didn't understand " + str(value[0]))
+        else:
+            self.aniTts.say("Hmm ... I didn't understand " + str(value[0]))]]>
+</content>
+                            </script>
+                            <Input name="onLoad" type="1" type_size="1" nature="0" inner="1" tooltip="Signal sent when diagram is loaded." id="1" />
+                            <Input name="onStart" type="1" type_size="1" nature="2" inner="0" tooltip="Box behavior starts when a signal is received on this input." id="2" />
+                            <Input name="onStop" type="1" type_size="1" nature="3" inner="0" tooltip="Box behavior stops when a signal is received on this input." id="3" />
+                            <Output name="onStopped" type="1" type_size="1" nature="1" inner="0" tooltip="Signal sent when box behavior is finished." id="4" />
+                            <Resource name="Speech recognition" type="Lock" timeout="0" />
+                        </Box>
+                        <Link inputowner="0" indexofinput="4" outputowner="2" indexofoutput="4" />
+                        <Link inputowner="2" indexofinput="2" outputowner="0" indexofoutput="2" />
+                    </Diagram>
+                </BehaviorKeyframe>
+            </BehaviorLayer>
+        </Timeline>
+    </Box>
+</ChoregrapheProject>
