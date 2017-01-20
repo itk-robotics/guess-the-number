@@ -2,7 +2,7 @@
 <Package name="guess-the-number" format_version="4">
     <Manifest src="manifest.xml" />
     <BehaviorDescriptions>
-        <BehaviorDescription name="behavior" src="behavior_1" xar="behavior.xar" />
+        <BehaviorDescription name="behavior" src="main" xar="behavior.xar" />
     </BehaviorDescriptions>
     <Dialogs />
     <Resources>
